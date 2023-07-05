@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 import Searchbar from './Searchbar/Searchbar';
@@ -9,87 +9,72 @@ import Button from './Button/Button';
 
 import styles from './App.module.css';
 
-class App extends Component {
-  state = {
-    images: [],
-    currentPage: 1,
-    searchQuery: '',
-    isLoading: false,
-    showModal: false,
-    largeImageURL: '',
-  };
+const App = () => {
+  const [images, setImages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [largeImageURL, setLargeImageURL] = useState('');
 
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.searchQuery !== this.state.searchQuery) {
-      this.fetchImages();
-    }
-  }
-
-  // onChangeQuery = query => {
-  //   this.setState({ searchQuery: query, currentPage: 1, images: [] });
-  // };
-
-  onChangeQuery = query => {
-    this.setState(prevState => ({
-      searchQuery: query,
-      currentPage: prevState.searchQuery !== query ? 1 : prevState.currentPage,
-      images: prevState.searchQuery !== query ? [] : prevState.images,
-    }));
-  };
-
-  fetchImages = () => {
-    const { searchQuery, currentPage } = this.state;
+  const fetchImages = useCallback(() => {
     const API_KEY = '36713183-ab33de53433f0fab0c63f220d';
     const BASE_URL = 'https://pixabay.com/api/';
     const perPage = 12;
 
-    this.setState({ isLoading: true });
+    setIsLoading(true);
 
     axios
       .get(
         `${BASE_URL}?q=${searchQuery}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
       )
       .then(response => {
-        this.setState(prevState => ({
-          images: [...prevState.images, ...response.data.hits],
-          currentPage: prevState.currentPage + 1,
-        }));
+        setImages(prevImages => [...prevImages, ...response.data.hits]);
+        setCurrentPage(prevPage => prevPage + 1);
       })
       .catch(error => console.log(error))
-      .finally(() => this.setState({ isLoading: false }));
+      .finally(() => setIsLoading(false));
+  }, [currentPage, searchQuery]);
+
+  useEffect(() => {
+    if (searchQuery !== '') {
+      fetchImages();
+    }
+  }, [searchQuery, fetchImages]);
+
+  const onChangeQuery = query => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    setImages([]);
   };
 
-  openModal = largeImageURL => {
-    this.setState({ showModal: true, largeImageURL });
+  const openModal = largeImageURL => {
+    setShowModal(true);
+    setLargeImageURL(largeImageURL);
   };
 
-  closeModal = () => {
-    this.setState({ showModal: false, largeImageURL: '' });
+  const closeModal = () => {
+    setShowModal(false);
+    setLargeImageURL('');
   };
 
-  loadMoreImages = () => {
-    this.fetchImages();
+  const loadMoreImages = () => {
+    fetchImages();
   };
 
-  render() {
-    const { images, isLoading, showModal, largeImageURL } = this.state;
-
-    return (
-      <div className={styles.App}>
-        <Searchbar onSubmit={this.onChangeQuery} />
-        <ImageGallery images={images} onImageClick={this.openModal} />
-        {isLoading && <Loader />}
-        {showModal && (
-          <Modal onClose={this.closeModal}>
-            <img src={largeImageURL} alt="" />
-          </Modal>
-        )}
-        {images.length > 0 && !isLoading && (
-          <Button onClick={this.loadMoreImages} />
-        )}
-      </div>
-    );
-  }
-}
+  return (
+    <div className={styles.App}>
+      <Searchbar onSubmit={onChangeQuery} />
+      <ImageGallery images={images} onImageClick={openModal} />
+      {isLoading && <Loader />}
+      {showModal && (
+        <Modal onClose={closeModal}>
+          <img src={largeImageURL} alt="" />
+        </Modal>
+      )}
+      {images.length > 0 && !isLoading && <Button onClick={loadMoreImages} />}
+    </div>
+  );
+};
 
 export default App;
