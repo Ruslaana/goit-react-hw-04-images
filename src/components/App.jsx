@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import Searchbar from './Searchbar/Searchbar';
@@ -17,7 +17,19 @@ const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [largeImageURL, setLargeImageURL] = useState('');
 
-  const fetchImages = useCallback(() => {
+  useEffect(() => {
+    if (searchQuery !== '') {
+      fetchImages();
+    }
+  }, [searchQuery]);
+
+  const onChangeQuery = query => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    setImages([]);
+  };
+
+  const fetchImages = () => {
     const API_KEY = '36713183-ab33de53433f0fab0c63f220d';
     const BASE_URL = 'https://pixabay.com/api/';
     const perPage = 12;
@@ -34,23 +46,11 @@ const App = () => {
       })
       .catch(error => console.log(error))
       .finally(() => setIsLoading(false));
-  }, [currentPage, searchQuery]);
-
-  useEffect(() => {
-    if (searchQuery !== '') {
-      fetchImages();
-    }
-  }, [searchQuery, fetchImages]);
-
-  const onChangeQuery = query => {
-    setSearchQuery(query);
-    setCurrentPage(1);
-    setImages([]);
   };
 
   const openModal = largeImageURL => {
-    setShowModal(true);
     setLargeImageURL(largeImageURL);
+    setShowModal(true);
   };
 
   const closeModal = () => {
