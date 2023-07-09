@@ -18,12 +18,12 @@ const App = () => {
   const [largeImageURL, setLargeImageURL] = useState('');
 
   useEffect(() => {
-    const fetchData = () => {
-      fetchImages();
+    const fetchData = async () => {
+      await fetchImages();
     };
     if (searchQuery !== '') {
       fetchData();
-    }
+    } // eslint-disable-next-line
   }, [searchQuery]);
 
   const onChangeQuery = query => {
