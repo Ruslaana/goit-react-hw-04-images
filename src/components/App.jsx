@@ -18,8 +18,11 @@ const App = () => {
   const [largeImageURL, setLargeImageURL] = useState('');
 
   useEffect(() => {
-    if (searchQuery !== '') {
+    const fetchData = () => {
       fetchImages();
+    };
+    if (searchQuery !== '') {
+      fetchData();
     }
   }, [searchQuery]);
 
