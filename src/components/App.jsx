@@ -18,37 +18,33 @@ const App = () => {
   const [largeImageURL, setLargeImageURL] = useState('');
 
   useEffect(() => {
-    const fetchData = async () => {
-      await fetchImages();
+    if (!searchQuery) return;
+
+    const fetchImages = () => {
+      const API_KEY = '36713183-ab33de53433f0fab0c63f220d';
+      const BASE_URL = 'https://pixabay.com/api/';
+      const perPage = 12;
+
+      setIsLoading(true);
+
+      axios
+        .get(
+          `${BASE_URL}?q=${searchQuery}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
+        )
+        .then(response => {
+          setImages(prevImages => [...prevImages, ...response.data.hits]);
+        })
+        .catch(error => console.log(error))
+        .finally(() => setIsLoading(false));
     };
-    if (searchQuery !== '') {
-      fetchData();
-    } // eslint-disable-next-line
-  }, [searchQuery]);
+
+    fetchImages();
+  }, [currentPage, searchQuery]);
 
   const onChangeQuery = query => {
     setSearchQuery(query);
     setCurrentPage(1);
     setImages([]);
-  };
-
-  const fetchImages = () => {
-    const API_KEY = '36713183-ab33de53433f0fab0c63f220d';
-    const BASE_URL = 'https://pixabay.com/api/';
-    const perPage = 12;
-
-    setIsLoading(true);
-
-    axios
-      .get(
-        `${BASE_URL}?q=${searchQuery}&page=${currentPage}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=${perPage}`
-      )
-      .then(response => {
-        setImages(prevImages => [...prevImages, ...response.data.hits]);
-        setCurrentPage(prevPage => prevPage + 1);
-      })
-      .catch(error => console.log(error))
-      .finally(() => setIsLoading(false));
   };
 
   const openModal = largeImageURL => {
@@ -62,7 +58,7 @@ const App = () => {
   };
 
   const loadMoreImages = () => {
-    fetchImages();
+    setCurrentPage(prevPage => prevPage + 1);
   };
 
   return (
