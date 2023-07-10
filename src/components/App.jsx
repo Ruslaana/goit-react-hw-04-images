@@ -43,8 +43,10 @@ const App = () => {
 
   const onChangeQuery = query => {
     setSearchQuery(query);
-    setCurrentPage(1);
-    setImages([]);
+    setCurrentPage(prevPage =>
+      prevPage !== 1 && searchQuery !== query ? 1 : prevPage
+    );
+    setImages(prevImages => (searchQuery !== query ? [] : prevImages));
   };
 
   const openModal = largeImageURL => {
